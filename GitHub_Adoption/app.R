@@ -1,10 +1,8 @@
 #
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
+# GitHub Feature Adoption
+# How to get the most out of your GitHub account
+# This is a shiny app dashboard that summarizes GitHub feature adoption for GitHub 
+# users with recommendations to get more out of their service.
 #
 
 library(shiny)
@@ -13,11 +11,10 @@ library(tidyverse)
 library(shiny.semantic)
 library(ggalt)
 library(ggforestplot)
+library(shinybusy)
 
 source("gh_caller.R")
 
-
-# Define UI for application that draws a histogram
 ui <- semanticPage(
     
     title = "GitHub Adoption Dashboard",
@@ -31,19 +28,24 @@ ui <- semanticPage(
                    div(class = "sub header", style = "color: #999999", "How to get the most out of your GitHub account"))))
     ),
     
-    div(class = "ui doubling grid raised segment",
-        div(class = "eight wide column",
+    div(class = "ui triple grid raised segment",
+        div(class = "seven wide column",
             textInput("user_name", label = "Enter a GitHub username", type = "text", 
                       placeholder = "MikeShout",
                       ),
 
             action_button("Go", "Go!", class = "green")
         ),
-        div(class = "eight wide column",
+        
+        div(class = "two wide column",
+            add_busy_gif(src = "http://nathanlaredo.com/github_files/octocat-spinner-128.gif", height = 50, width = 50)
+        ),
+        
+        div(class = "seven wide column",
             p(icon("idea"), "Examples to try:", 
               list_container(list(list(header = "hadley"), 
-                                  list(header = "AnotherPerson"), 
-                                  list(header = "GitHub")), 
+                                  list(header = "bodil"), 
+                                  list(header = "juliasilge")), 
                              is_divided = FALSE)
               )
         )
@@ -106,8 +108,25 @@ ui <- semanticPage(
     
     div(class = "ui horizontal divider", icon("user ninja"), 
         "Recommendations"),
-        textOutput("recos"),
-        tableOutput("test")
+    br(), br(),    
+    textOutput("recos"),
+    
+    div(class = "ui horizontal divider", icon("info circle icon"), 
+        "About"),
+    br(),
+    p(tags$b("GitHub"), " offers a fantastic service extending git where users can organize, collaborate, and share their code. Not to mention it is free and GitHub continues to develop new features. Users can share gists (useful code snippets), publish a page/blog, and create projects."),
+    p("This Shiny app is a simple", tags$b(" dashboard "), "analyzing a given user's usage of their GitHub service. Based on that, it recommends others features that may be valuable for that user."),
+    br(),
+    p("This app was created by ", tags$b(" Mike Wehinger")),
+    
+    tags$a(href="https://twitter.com/mwehinger", "@mwehinger"),
+    br(),
+    tags$a(href="http://www.myshout.io", "myshout.io"),
+    br(), br(),
+    p("Of course you can find this code on GitHub ",tags$a(href="https://github.com/mikeShout/ShinyGitHub", "here")),
+    br(),
+    p(tags$i("Thank you for visiting"))
+        
 )
 
 
@@ -162,7 +181,7 @@ server <- function(input, output, session) {
         
         suppliedUser() %>% filter(Feature != "user") %>% group_by(Feature) %>% summarize(count = sum(count), first_created=min(first_created), last_updated = max(last_updated)) %>% ggplot(aes(x=first_created, xend=last_updated, y=Feature)) + geom_dumbbell(size=1.3, color="#007FA9",colour_x = "#007FA9",colour_xend = "#007FA9",size_x = 5,size_xend = 5,dot_guide=FALSE, dot_guide_size=0.25)+ 
             labs(x=NULL, y=NULL,
-                 title="GitHub Feature Usage",
+                 title="GitHub Usage Timeline",
                  subtitle="From first creation to latest update",
                  caption="Source: GitHub API") + 
             theme_classic() + 
@@ -196,15 +215,35 @@ server <- function(input, output, session) {
     })
     
         output$recos <- renderText({
-            "A bunch of text will go here eventually..."
+            comment <- paste("User ", as.character(suppliedUser()[suppliedUser()$Feature=="user", "forked"]), sep="")
+            comment <- paste(comment, " has ", sum(suppliedUser()[suppliedUser()$Feature=="Repos", "count"]), " repos, ", sum(suppliedUser()[suppliedUser()$Feature=="Repos" & suppliedUser()$forked=="Forked_No", "count"]), " of which are not forked.", sep="")
+
+            if (sum(suppliedUser()[suppliedUser()$Feature=="Repos" & suppliedUser()$forked=="Forked_No", "count"])<2) {
+                comment <- paste(comment, " Get more practice and build out a portfolio by creating and sharing more repositories", sep="")
+            } else {
+                comment <- paste(comment, " That is a solid portfolio, well done.", sep="")
+            }
+            
+            if (sum(suppliedUser()[suppliedUser()$Feature=="Pages", "count"])<1) {
+                comment <- paste(comment, " Now you can set up a page to showcase your skills and projects.", sep="")
+            } else {
+                comment <- paste(comment, " Whats better is that you also have a GitHub page to better articulate your skills and interests.", sep="")
+            }
+            
+            if (sum(suppliedUser()[suppliedUser()$Feature=="Gists", "count"])<1) {
+                comment <- paste(comment, " Do you have a snippet of code that you find really useful? Then try sharing it as a gist.", sep="")
+            } else {
+                comment <- paste(comment, " WIth ", sum(suppliedUser()[suppliedUser()$Feature=="Gists", "count"]), " gists, you are well on your way to sharing best practices and code with others.", sep="")
+            }
+            
     })
         output$user <- renderText({
-            as.character(suppliedUser()[suppliedUser()$Feature=="user", "forked"])    
-        })
+            as.character(suppliedUser()[suppliedUser()$Feature=="user", "forked"])
+            })
     
-    output$test <- renderTable({
-        suppliedUser()
-    })
+#    output$test <- renderTable({
+#        suppliedUser()
+#    })
     
 }
 

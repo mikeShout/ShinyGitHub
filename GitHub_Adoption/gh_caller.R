@@ -13,7 +13,7 @@ sum_data <- function(uName){
   )
   
   if(repos == "User not found") {
-    # alert user of problem
+    # alert user of problem and return a blank table
     err = TRUE
     sum_table <- as_tibble(rbind(
       cbind(forked="Forked_No", count = 0, first_created = "", last_updated = "", Feature = "Repos"), 

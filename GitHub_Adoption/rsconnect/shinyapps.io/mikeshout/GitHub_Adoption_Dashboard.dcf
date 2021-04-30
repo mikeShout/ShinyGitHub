@@ -1,0 +1,12 @@
+name: GitHub_Adoption_Dashboard
+title: GitHub_Adoption_Dashboard
+username:
+account: mikeshout
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4054993
+bundleId: 4539329
+url: https://mikeshout.shinyapps.io/GitHub_Adoption_Dashboard/
+when: 1619781195.66583
+asMultiple: FALSE
+asStatic: FALSE
